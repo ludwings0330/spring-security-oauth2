@@ -1,18 +1,24 @@
 package com.example.securitytest.configuration;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
+@Slf4j
 public class JwtUtil {
 
     private final String secret;
@@ -39,8 +45,9 @@ public class JwtUtil {
 
     private String generateToken(PrincipalDetails user, long expirationTime) {
         return Jwts.builder()
-                   .claim("nickname", "user.getNickname()")
-                   .claim("email", "user.getEmail()")
+                   .claim("nickname", user.getNickname())
+                   .claim("email", user.getEmail())
+                   .claim("provider", user.getProvider())
                    .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                    .signWith(key, SignatureAlgorithm.HS256)
                    .compact();
@@ -57,9 +64,39 @@ public class JwtUtil {
         return null;
     }
 
+    private Claims getClaims(String token) {
+        return Jwts.parserBuilder()
+                   .setSigningKey(key)
+                   .build()
+                   .parseClaimsJws(token)
+                   .getBody();
+    }
 
-    public Authentication getAuthentication(String accessToken) {
-        return null;
+    public Authentication getAuthentication(String token) {
+        final Claims claims = this.getClaims(token);
+
+        PrincipalDetails user = PrincipalDetails.builder()
+                                                .provider((String) claims.get("provider"))
+                                                .email((String) claims.get("email"))
+                                                .nickname((String) claims.get("nickname"))
+                                                .build();
+
+        return new UsernamePasswordAuthenticationToken(user, token, null);
+    }
+
+    public boolean valid(String token) {
+        try {
+            this.getClaims(token);
+            return true;
+        } catch (ExpiredJwtException e) {
+            log.info("만료된 토큰");
+        } catch (JwtException e) {
+            log.info("유효하지 않은 토큰");
+        } catch (Exception e) {
+            log.info("예외 발생");
+        }
+
+        return false;
     }
 
 }

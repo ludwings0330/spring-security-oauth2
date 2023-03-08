@@ -15,6 +15,8 @@ public class SecurityConfig {
 
     private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
     private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -30,8 +32,8 @@ public class SecurityConfig {
 
         http.exceptionHandling(handle ->
                                        handle
-                                               .authenticationEntryPoint(null)
-                                               .accessDeniedHandler(null));
+                                               .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                                               .accessDeniedHandler(jwtAccessDeniedHandler));
 
         http.oauth2Login(oauth2 ->
                                  oauth2
@@ -44,7 +46,7 @@ public class SecurityConfig {
         http.authorizeRequests(request ->
                                        request
                                                .anyRequest()
-                                               .permitAll());
+                                               .authenticated());
 
         return http.build();
     }
