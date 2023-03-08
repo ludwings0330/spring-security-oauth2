@@ -21,7 +21,6 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class JwtUtil {
 
-    private final String secret;
     private final Long accessTokenExpirationTime;
     private final Long refreshTokenExpirationTime;
     private final Key key;
@@ -29,18 +28,17 @@ public class JwtUtil {
     public JwtUtil(@Value("${jwt.secret}") String secret,
                    @Value("${jwt.expiration.token.access}") Long accessTokenExpirationTime,
                    @Value("${jwt.expiration.token.refresh}") Long refreshTokenExpirationTime) {
-        this.secret = secret;
         this.accessTokenExpirationTime = accessTokenExpirationTime;
         this.refreshTokenExpirationTime = refreshTokenExpirationTime;
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
     public String generateRefreshToken(@AuthenticationPrincipal PrincipalDetails user) {
-        return generateToken(user, accessTokenExpirationTime);
+        return generateToken(user, refreshTokenExpirationTime);
     }
 
     public String generateAccessToken(@AuthenticationPrincipal PrincipalDetails user) {
-        return generateToken(user, refreshTokenExpirationTime);
+        return generateToken(user, accessTokenExpirationTime);
     }
 
     private String generateToken(PrincipalDetails user, long expirationTime) {
