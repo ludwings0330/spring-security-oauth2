@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 
@@ -35,6 +36,9 @@ public class SecurityConfig {
                                                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                                                .accessDeniedHandler(jwtAccessDeniedHandler));
 
+        http.sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
         http.oauth2Login(oauth2 ->
                                  oauth2
                                          .userInfoEndpoint() // oauth2 로그인 성공후 유저 정보를 가져온다.
@@ -45,6 +49,8 @@ public class SecurityConfig {
 
         http.authorizeRequests(request ->
                                        request
+                                               .antMatchers("/login/**", "/redirect/**")
+                                               .permitAll()
                                                .anyRequest()
                                                .authenticated());
 
