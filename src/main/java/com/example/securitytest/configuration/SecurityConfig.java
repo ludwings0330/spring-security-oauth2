@@ -54,6 +54,8 @@ public class SecurityConfig {
                                                .anyRequest()
                                                .authenticated());
 
+        http.csrf().disable();
+
         return http.build();
     }
 
