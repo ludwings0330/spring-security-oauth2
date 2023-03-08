@@ -35,9 +35,6 @@ public class Member {
     @Column(nullable = false)
     private String provider;
 
-    @Column(name = "access_token")
-    private String accessToken; // token 을 저장할 임시 변수!
-
     @Column(name = "refresh_token")
     private String refreshToken;
 
